@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <base href="https://cdn.jsdelivr.net/gh/web-ports/20-minutes@main/">
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | 20 Minutes Till Dawn</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+      :root {
+        --bg: #070a0f;
+        --bg-2: #101821;
+        --panel: rgba(13, 18, 24, 0.82);
+        --panel-strong: rgba(14, 17, 19, 0.94);
+        --line: rgba(255, 255, 255, 0.12);
+        --text: #f2f4f6;
+        --muted: rgba(242, 244, 246, 0.66);
+        --orange: #ff8c3a;
+        --amber: #ffbe54;
+        --red: #ff5c5c;
+        --shadow: rgba(0, 0, 0, 0.48);
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+        overflow: hidden;
+      }
+
+      body {
+        position: relative;
+        background:
+          radial-gradient(circle at 50% 24%, rgba(255, 159, 78, 0.12), transparent 28%),
+          linear-gradient(180deg, #070a0f 0%, #0b1017 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.02) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+        pointer-events: none;
+        mix-blend-mode: screen;
+      }
+
+      #loading-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(3, 5, 9, 0.7);
+      }
+
+      #loading-panel {
+        width: min(760px, calc(100vw - 36px));
+        padding: 18px 20px 16px;
+        border: 1px solid var(--line);
+        background: rgba(9, 12, 17, 0.75);
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.04),
+          0 30px 45px rgba(0,0,0,0.5);
+        border-radius: 14px;
+      }
+
+      #loading-title {
+        margin: 0;
+        text-align: center;
+        font-weight: 900;
+        letter-spacing: 0.24em;
+        font-size: clamp(20px, 3vw, 42px);
+        text-transform: uppercase;
+        color: #f2f2f2;
+        text-shadow: 0 0 18px rgba(255, 166, 84, 0.45);
+      }
+
+      #loading-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      #loading-bytes,
+      #loading-percent {
+        display: inline-block;
+      }
+
+      #loading-progress {
+        width: 100%;
+        height: 18px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      #loading-progress-fill {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--red) 0%, var(--orange) 32%, var(--amber) 100%);
+        box-shadow: 0 0 16px rgba(255, 157, 71, 0.7);
+        transition: width 120ms linear;
+      }
+
+      #debug-toggle {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 11;
+        appearance: none;
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 999px;
+        background: rgba(15, 18, 20, 0.82);
+        color: var(--text);
+        padding: 8px 14px;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      #debug-panel {
+        position: fixed;
+        right: 18px;
+        bottom: 58px;
+        z-index: 11;
+        width: min(340px, calc(100vw - 30px));
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(10, 14, 18, 0.88);
+        box-shadow: 0 30px 40px rgba(0,0,0,0.42);
+        display: grid;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      .debug-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .debug-row strong {
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      #unity-container {
+        position: fixed;
+        inset: 0;
+      }
+
+      #unity-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: #000;
+      }
+
+      #unity-loading-bar {
+        display: none;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(420px, 72vw);
+        opacity: 0;
+      }
+
+      @media (max-width: 650px) {
+        #loading-meta {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading-overlay">
+      <div id="loading-panel">
+        <h1 id="loading-title">LOADING</h1>
+        <div id="loading-meta">
+          <div id="loading-bytes">(0.00/0.00 MB)</div>
+          <div id="loading-percent">0% DONE</div>
+        </div>
+        <div id="loading-progress">
+          <div id="loading-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <button id="debug-toggle" type="button">Debug</button>
+
+    <div id="debug-panel" hidden>
+      <div class="debug-row"><span>Download</span><strong id="debug-download">0.00/0.00 MB</strong></div>
+      <div class="debug-row"><span>Progress</span><strong id="debug-percent">0% DONE</strong></div>
+      <div class="debug-row"><span>Window</span><strong id="debug-window">0x0</strong></div>
+      <div class="debug-row"><span>User Agent</span><strong id="debug-agent">unknown</strong></div>
+    </div>
+
+    <div id="unity-container">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+    </div>
+    <script>
+      const loadingBytes = document.querySelector("#loading-bytes");
+      const loadingPercent = document.querySelector("#loading-percent");
+      const loadingProgressFill = document.querySelector("#loading-progress-fill");
+      const debugDownload = document.querySelector("#debug-download");
+      const debugPercent = document.querySelector("#debug-percent");
+      const debugWindow = document.querySelector("#debug-window");
+      const debugAgent = document.querySelector("#debug-agent");
+      const debugPanel = document.querySelector("#debug-panel");
+      const debugToggle = document.querySelector("#debug-toggle");
+      const loadingOverlay = document.querySelector("#loading-overlay");
+
+      const downloadState = {
+        totalBytes: 0,
+        loadedBytes: 0,
+      };
+
+      function formatMb(bytes) {
+        return (bytes / (1024 * 1024)).toFixed(2);
+      }
+
+      function updateLoadingUI(percentOverride = null) {
+        const loadedMB = formatMb(downloadState.loadedBytes);
+        const totalMB = formatMb(downloadState.totalBytes || 0);
+        const percent = percentOverride !== null
+          ? percentOverride
+          : (downloadState.totalBytes > 0 ? (downloadState.loadedBytes / downloadState.totalBytes) * 100 : 0);
+
+        const clamped = Math.min(100, Math.max(0, percent));
+
+        loadingBytes.textContent = `(${loadedMB}/${totalMB} MB)`;
+        loadingPercent.textContent = `${Math.round(clamped)}% DONE`;
+        loadingProgressFill.style.width = `${clamped}%`;
+        debugDownload.textContent = `${loadedMB}/${totalMB} MB`;
+        debugPercent.textContent = `${Math.round(clamped)}% DONE`;
+        debugWindow.textContent = `${window.innerWidth}x${window.innerHeight}`;
+        debugAgent.textContent = navigator.userAgent.slice(0, 80);
+      }
+
+      debugToggle.addEventListener("click", () => {
+        const hidden = debugPanel.hasAttribute("hidden");
+        debugPanel.toggleAttribute("hidden", !hidden);
+        debugToggle.textContent = hidden ? "Hide Debug" : "Debug";
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key.toLowerCase() === "d") {
+          const hidden = debugPanel.hasAttribute("hidden");
+          debugPanel.toggleAttribute("hidden", !hidden);
+          debugToggle.textContent = hidden ? "Hide Debug" : "Debug";
+        }
+      });
+
+      async function fetchWithProgress(url) {
+        const response = await fetch(url);
+        const contentLength = Number(response.headers.get("content-length") || 0);
+        if (contentLength > 0) {
+          downloadState.totalBytes += contentLength;
+        }
+
+        const reader = response.body.getReader();
+        const chunks = [];
+        let received = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          received += value.length;
+          downloadState.loadedBytes += value.length;
+          chunks.push(value);
+          updateLoadingUI();
+        }
+
+        const fullBuffer = new Uint8Array(received);
+        let offset = 0;
+        for (const chunk of chunks) {
+          fullBuffer.set(chunk, offset);
+          offset += chunk.length;
+        }
+
+        return fullBuffer.buffer;
+      }
+
+      async function mergeFiles(fileParts, cacheKey) {
+        const cache = await caches.open("20mins-cache");
+        const cachedResponse = await cache.match(cacheKey);
+        if (cachedResponse) {
+          const blob = await cachedResponse.blob();
+          return URL.createObjectURL(blob);
+        }
+
+        const buffers = await Promise.all(fileParts.map(part => fetchWithProgress(part)));
+        const mergedBlob = new Blob(buffers);
+        const response = new Response(mergedBlob);
+        await cache.put(cacheKey, response);
+        return URL.createObjectURL(mergedBlob);
+      }
+
+      function getParts(file, start, end) {
+        const parts = [];
+        for (let i = start; i <= end; i++) {
+          parts.push(file + ".part" + i);
+        }
+        return parts;
+      }
+
+      (async () => {
+        updateLoadingUI();
+
+        const [dataUrl, wasmUrl] = await Promise.all([
+          mergeFiles(getParts("Build/20minutes.data", 1, 2), "20minutes.data"),
+          mergeFiles(getParts("Build/20minutes.wasm", 1, 2), "20minutes.wasm"),
+        ]);
+
+        const canvas = document.querySelector("#unity-canvas");
+        const loadingBar = document.querySelector("#unity-loading-bar");
+        const progressBarFull = document.querySelector("#unity-progress-bar-full");
+
+        function unityShowBanner(msg, type) {
+        }
+
+        const buildUrl = "Build";
+        const loaderUrl = buildUrl + "/20minutes.loader.js";
+        const config = {
+          arguments: [],
+          dataUrl: dataUrl,
+          frameworkUrl: buildUrl + "/20minutes.framework.js",
+          codeUrl: wasmUrl,
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: "Flanne",
+          productName: "MinutesTillDawn",
+          productVersion: "0.6.6",
+          showBanner: unityShowBanner,
+        };
+
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+          const meta = document.createElement("meta");
+          meta.name = "viewport";
+          meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+          document.getElementsByTagName("head")[0].appendChild(meta);
+        }
+
+        loadingBar.style.display = "block";
+
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            const percent = Math.min(100, Math.round(progress * 100));
+            progressBarFull.style.width = percent + "%";
+            updateLoadingUI(percent);
+          }).then((unityInstance) => {
+            loadingBar.style.display = "none";
+            loadingOverlay.style.display = "none";
+          }).catch((message) => {
+            alert(message);
+          });
+        };
+        document.body.appendChild(script);
+      })();
+    </script>
+  </body>
+</html>
