@@ -9,13 +9,17 @@
     <link rel="stylesheet" href="TemplateData/style.css">
     <style>
       :root {
-        --bg: #05070d;
-        --panel: rgba(12, 16, 22, 0.9);
-        --border: rgba(255, 255, 255, 0.14);
-        --text: #edf7ff;
-        --muted: rgba(237, 247, 255, 0.72);
-        --accent: #7be0ff;
-        --accent-2: #ffb454;
+        --bg: #070a0f;
+        --bg-2: #101821;
+        --panel: rgba(13, 18, 24, 0.82);
+        --panel-strong: rgba(14, 17, 19, 0.94);
+        --line: rgba(255, 255, 255, 0.12);
+        --text: #f2f4f6;
+        --muted: rgba(242, 244, 246, 0.66);
+        --orange: #ff8c3a;
+        --amber: #ffbe54;
+        --red: #ff5c5c;
+        --shadow: rgba(0, 0, 0, 0.48);
       }
 
       * { box-sizing: border-box; }
@@ -32,6 +36,24 @@
 
       body {
         position: relative;
+        background:
+          radial-gradient(circle at 50% 24%, rgba(255, 159, 78, 0.12), transparent 28%),
+          linear-gradient(180deg, #070a0f 0%, #0b1017 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.02) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+        pointer-events: none;
+        mix-blend-mode: screen;
       }
 
       #loading-overlay {
@@ -39,96 +61,102 @@
         inset: 0;
         z-index: 10;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 16px;
-        background: radial-gradient(circle at top, rgba(44, 62, 84, 0.7), rgba(5, 7, 13, 1) 62%);
+        background: rgba(3, 5, 9, 0.7);
       }
 
       #loading-panel {
-        width: min(680px, calc(100vw - 40px));
-        padding: 24px 22px 18px;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        background: rgba(7, 12, 18, 0.8);
-        backdrop-filter: blur(4px);
-        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        width: min(760px, calc(100vw - 36px));
+        padding: 18px 20px 16px;
+        border: 1px solid var(--line);
+        background: rgba(9, 12, 17, 0.75);
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.04),
+          0 30px 45px rgba(0,0,0,0.5);
+        border-radius: 14px;
       }
 
       #loading-title {
-        font-weight: 800;
-        letter-spacing: 0.18em;
+        margin: 0;
+        text-align: center;
+        font-weight: 900;
+        letter-spacing: 0.24em;
+        font-size: clamp(20px, 3vw, 42px);
         text-transform: uppercase;
-        margin: 0 0 10px;
-        font-size: clamp(24px, 2.5vw, 36px);
-        background: linear-gradient(90deg, #ff4d4d, #ff9a3c, #ffe66d, #79e7b5, #6fd6ff, #a799ff);
-        background-size: 200% 200%;
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        animation: shimmer 2.6s ease infinite;
+        color: #f2f2f2;
+        text-shadow: 0 0 18px rgba(255, 166, 84, 0.45);
       }
 
       #loading-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 12px;
-        color: var(--muted);
-        font-size: 14px;
-        letter-spacing: 0.08em;
+        gap: 12px;
+        margin-top: 12px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
+        color: var(--muted);
       }
 
+      #loading-bytes,
       #loading-percent {
-        font-weight: 700;
-        color: #ffffff;
+        display: inline-block;
       }
 
       #loading-progress {
         width: 100%;
         height: 18px;
-        border-radius: 999px;
-        overflow: hidden;
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.5);
       }
 
       #loading-progress-fill {
         width: 0%;
         height: 100%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        box-shadow: 0 0 18px rgba(123, 224, 255, 0.7);
-        transition: width 150ms linear;
+        background: linear-gradient(90deg, var(--red) 0%, var(--orange) 32%, var(--amber) 100%);
+        box-shadow: 0 0 16px rgba(255, 157, 71, 0.7);
+        transition: width 120ms linear;
       }
 
       #debug-toggle {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 11;
         appearance: none;
-        border: 1px solid var(--border);
-        background: rgba(10, 15, 20, 0.75);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 999px;
+        background: rgba(15, 18, 20, 0.82);
         color: var(--text);
         padding: 8px 14px;
-        border-radius: 999px;
-        font-weight: 700;
-        letter-spacing: 0.12em;
+        font-size: 10px;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         cursor: pointer;
       }
 
       #debug-panel {
-        width: min(480px, calc(100vw - 32px));
-        padding: 14px 16px;
+        position: fixed;
+        right: 18px;
+        bottom: 58px;
+        z-index: 11;
+        width: min(340px, calc(100vw - 30px));
+        padding: 12px 14px;
         border-radius: 12px;
-        border: 1px solid var(--border);
-        background: rgba(8, 12, 18, 0.8);
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(10, 14, 18, 0.88);
+        box-shadow: 0 30px 40px rgba(0,0,0,0.42);
         display: grid;
         gap: 8px;
-        font-size: 12px;
-        line-height: 1.4;
         color: var(--muted);
+        font-size: 11px;
+        line-height: 1.4;
       }
 
       .debug-row {
@@ -139,19 +167,43 @@
 
       .debug-row strong {
         color: var(--text);
+        font-weight: 700;
       }
 
-      @keyframes shimmer {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+      #unity-container {
+        position: fixed;
+        inset: 0;
+      }
+
+      #unity-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: #000;
+      }
+
+      #unity-loading-bar {
+        display: none;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(420px, 72vw);
+        opacity: 0;
+      }
+
+      @media (max-width: 650px) {
+        #loading-meta {
+          flex-direction: column;
+          align-items: flex-start;
+        }
       }
     </style>
   </head>
   <body>
     <div id="loading-overlay">
       <div id="loading-panel">
-        <div id="loading-title">LOADING</div>
+        <h1 id="loading-title">LOADING</h1>
         <div id="loading-meta">
           <div id="loading-bytes">(0.00/0.00 MB)</div>
           <div id="loading-percent">0% DONE</div>
@@ -160,15 +212,15 @@
           <div id="loading-progress-fill"></div>
         </div>
       </div>
+    </div>
 
-      <button id="debug-toggle" type="button">Debug</button>
+    <button id="debug-toggle" type="button">Debug</button>
 
-      <div id="debug-panel" hidden>
-        <div class="debug-row"><span>Download</span><strong id="debug-download">0.00/0.00 MB</strong></div>
-        <div class="debug-row"><span>Progress</span><strong id="debug-percent">0% DONE</strong></div>
-        <div class="debug-row"><span>Window</span><strong id="debug-window">0x0</strong></div>
-        <div class="debug-row"><span>User Agent</span><strong id="debug-agent">unknown</strong></div>
-      </div>
+    <div id="debug-panel" hidden>
+      <div class="debug-row"><span>Download</span><strong id="debug-download">0.00/0.00 MB</strong></div>
+      <div class="debug-row"><span>Progress</span><strong id="debug-percent">0% DONE</strong></div>
+      <div class="debug-row"><span>Window</span><strong id="debug-window">0x0</strong></div>
+      <div class="debug-row"><span>User Agent</span><strong id="debug-agent">unknown</strong></div>
     </div>
 
     <div id="unity-container">
@@ -191,36 +243,46 @@
       const debugAgent = document.querySelector("#debug-agent");
       const debugPanel = document.querySelector("#debug-panel");
       const debugToggle = document.querySelector("#debug-toggle");
+      const loadingOverlay = document.querySelector("#loading-overlay");
 
       const downloadState = {
         totalBytes: 0,
         loadedBytes: 0,
       };
 
-      function updateDebugInfo() {
-        const loadedMB = (downloadState.loadedBytes / (1024 * 1024)).toFixed(2);
-        const totalMB = (downloadState.totalBytes / (1024 * 1024)).toFixed(2);
-        const pct = downloadState.totalBytes > 0 ? (downloadState.loadedBytes / downloadState.totalBytes) * 100 : 0;
+      function formatMb(bytes) {
+        return (bytes / (1024 * 1024)).toFixed(2);
+      }
+
+      function updateLoadingUI(percentOverride = null) {
+        const loadedMB = formatMb(downloadState.loadedBytes);
+        const totalMB = formatMb(downloadState.totalBytes || 0);
+        const percent = percentOverride !== null
+          ? percentOverride
+          : (downloadState.totalBytes > 0 ? (downloadState.loadedBytes / downloadState.totalBytes) * 100 : 0);
+
+        const clamped = Math.min(100, Math.max(0, percent));
+
         loadingBytes.textContent = `(${loadedMB}/${totalMB} MB)`;
-        loadingPercent.textContent = `${Math.min(100, Math.round(pct))}% DONE`;
-        loadingProgressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+        loadingPercent.textContent = `${Math.round(clamped)}% DONE`;
+        loadingProgressFill.style.width = `${clamped}%`;
         debugDownload.textContent = `${loadedMB}/${totalMB} MB`;
-        debugPercent.textContent = `${Math.min(100, Math.round(pct))}% DONE`;
+        debugPercent.textContent = `${Math.round(clamped)}% DONE`;
         debugWindow.textContent = `${window.innerWidth}x${window.innerHeight}`;
         debugAgent.textContent = navigator.userAgent.slice(0, 80);
       }
 
       debugToggle.addEventListener("click", () => {
-        const isHidden = debugPanel.hasAttribute("hidden");
-        debugPanel.toggleAttribute("hidden", !isHidden);
-        debugToggle.textContent = isHidden ? "Hide Debug" : "Debug";
+        const hidden = debugPanel.hasAttribute("hidden");
+        debugPanel.toggleAttribute("hidden", !hidden);
+        debugToggle.textContent = hidden ? "Hide Debug" : "Debug";
       });
 
       window.addEventListener("keydown", (event) => {
         if (event.key.toLowerCase() === "d") {
-          const isHidden = debugPanel.hasAttribute("hidden");
-          debugPanel.toggleAttribute("hidden", !isHidden);
-          debugToggle.textContent = isHidden ? "Hide Debug" : "Debug";
+          const hidden = debugPanel.hasAttribute("hidden");
+          debugPanel.toggleAttribute("hidden", !hidden);
+          debugToggle.textContent = hidden ? "Hide Debug" : "Debug";
         }
       });
 
@@ -241,7 +303,7 @@
           received += value.length;
           downloadState.loadedBytes += value.length;
           chunks.push(value);
-          updateDebugInfo();
+          updateLoadingUI();
         }
 
         const fullBuffer = new Uint8Array(received);
@@ -278,21 +340,18 @@
       }
 
       (async () => {
-        updateDebugInfo();
+        updateLoadingUI();
 
         const [dataUrl, wasmUrl] = await Promise.all([
           mergeFiles(getParts("Build/20minutes.data", 1, 2), "20minutes.data"),
           mergeFiles(getParts("Build/20minutes.wasm", 1, 2), "20minutes.wasm"),
         ]);
 
-        const container = document.querySelector("#unity-container");
         const canvas = document.querySelector("#unity-canvas");
         const loadingBar = document.querySelector("#unity-loading-bar");
         const progressBarFull = document.querySelector("#unity-progress-bar-full");
-        const warningBanner = document.querySelector("#unity-warning");
 
         function unityShowBanner(msg, type) {
-          // intentionally blank to avoid default banner noise
         }
 
         const buildUrl = "Build";
@@ -324,15 +383,10 @@
           createUnityInstance(canvas, config, (progress) => {
             const percent = Math.min(100, Math.round(progress * 100));
             progressBarFull.style.width = percent + "%";
-            if (downloadState.totalBytes > 0) {
-              loadingPercent.textContent = `${percent}% DONE`;
-              loadingProgressFill.style.width = `${percent}%`;
-              debugPercent.textContent = `${percent}% DONE`;
-            }
+            updateLoadingUI(percent);
           }).then((unityInstance) => {
             loadingBar.style.display = "none";
-            document.querySelector("#loading-overlay").style.display = "none";
-            container.style.display = "block";
+            loadingOverlay.style.display = "none";
           }).catch((message) => {
             alert(message);
           });
